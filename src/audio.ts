@@ -24,7 +24,15 @@ function noteFreq(note: string): number {
   return 440 * Math.pow(2, semitone / 12)
 }
 
+const MUTED_KEY = 'matching-muted'
+
+function loadMuted(): boolean {
+  return localStorage.getItem(MUTED_KEY) === 'true'
+}
+
+let muted = loadMuted()
 let audioCtx: AudioContext | null = null
+let masterBus: GainNode | null = null
 
 function getCtx(): AudioContext {
   if (!audioCtx) {
@@ -34,6 +42,28 @@ function getCtx(): AudioContext {
     void audioCtx.resume()
   }
   return audioCtx
+}
+
+function getMasterBus(): GainNode {
+  const ctx = getCtx()
+  if (!masterBus) {
+    masterBus = ctx.createGain()
+    masterBus.gain.value = muted ? 0 : 1
+    masterBus.connect(ctx.destination)
+  }
+  return masterBus
+}
+
+export function isMuted(): boolean {
+  return muted
+}
+
+export function setMuted(value: boolean) {
+  muted = value
+  localStorage.setItem(MUTED_KEY, String(muted))
+  if (masterBus) {
+    masterBus.gain.value = muted ? 0 : 1
+  }
 }
 
 interface PlaybackHandle {
@@ -86,7 +116,7 @@ function startHappyBirthday(): PlaybackHandle {
 
   const masterGain = ctx.createGain()
   masterGain.gain.value = 0.18
-  masterGain.connect(ctx.destination)
+  masterGain.connect(getMasterBus())
 
   let stopped = false
   let timeoutId: number | undefined
@@ -150,7 +180,7 @@ function startAmbient(): PlaybackHandle {
 
   const masterGain = ctx.createGain()
   masterGain.gain.value = 0.05
-  masterGain.connect(ctx.destination)
+  masterGain.connect(getMasterBus())
 
   const filter = ctx.createBiquadFilter()
   filter.type = 'lowpass'

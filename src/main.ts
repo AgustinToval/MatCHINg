@@ -1,6 +1,6 @@
 import './style.css'
 import { generateBatch, type Problem } from './problems'
-import { playAmbient, playHappyBirthdayMusic } from './audio'
+import { playAmbient, playHappyBirthdayMusic, isMuted, setMuted } from './audio'
 
 const BATCH_SIZE = 8
 const LOAD_THRESHOLD = 3 // start loading more when this many cards remain below viewport
@@ -389,6 +389,25 @@ function resetFeed() {
   setActiveInput(feed.querySelector<HTMLInputElement>('.answer-input'))
 }
 
+function setupMuteButton() {
+  const btn = document.createElement('button')
+  btn.className = 'mute-btn'
+  btn.setAttribute('aria-label', 'Toggle music')
+
+  function updateIcon() {
+    btn.textContent = isMuted() ? '🔇' : '🔊'
+  }
+
+  updateIcon()
+  btn.addEventListener('click', () => {
+    setMuted(!isMuted())
+    updateIcon()
+  })
+
+  document.body.appendChild(btn)
+}
+
+setupMuteButton()
 showSetup()
 
 // Register the service worker (auto-injected by vite-plugin-pwa in production builds).
