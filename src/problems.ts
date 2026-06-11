@@ -11,46 +11,46 @@ function randInt(min: number, max: number): number {
 type Generator = (level: number) => Omit<Problem, 'id'>
 
 const addition: Generator = (level) => {
-  const max = 15 + level * 10
-  const a = randInt(1, max)
-  const b = randInt(1, max)
+  const max = 25 + level * 15
+  const a = randInt(10, max)
+  const b = randInt(10, max)
   return { question: `${a} + ${b}`, answer: a + b }
 }
 
 const subtraction: Generator = (level) => {
-  const max = 15 + level * 10
-  const a = randInt(1, max)
-  const b = randInt(1, max)
+  const max = 25 + level * 15
+  const a = randInt(10, max)
+  const b = randInt(10, max)
   const hi = Math.max(a, b)
   const lo = Math.min(a, b)
   return { question: `${hi} - ${lo}`, answer: hi - lo }
 }
 
 const multiplication: Generator = (level) => {
-  const max = Math.min(20, 5 + Math.floor(level / 2))
-  const a = randInt(2, max)
-  const b = randInt(2, max)
+  const max = Math.min(25, 6 + level)
+  const a = randInt(3, max)
+  const b = randInt(3, max)
   return { question: `${a} × ${b}`, answer: a * b }
 }
 
 const division: Generator = (level) => {
-  const max = Math.min(20, 5 + Math.floor(level / 2))
-  const b = randInt(2, max)
-  const answer = randInt(2, max)
+  const max = Math.min(25, 6 + level)
+  const b = randInt(3, max)
+  const answer = randInt(3, max)
   const a = b * answer
   return { question: `${a} ÷ ${b}`, answer }
 }
 
 const square: Generator = (level) => {
-  const max = Math.min(20, 5 + Math.floor(level / 2))
-  const a = randInt(2, max)
+  const max = Math.min(25, 6 + level)
+  const a = randInt(4, max)
   return { question: `${a}²`, answer: a * a }
 }
 
 const percentage: Generator = (level) => {
-  const percents = [10, 20, 25, 50, 75]
+  const percents = [5, 10, 15, 20, 25, 50, 75]
   const p = percents[randInt(0, percents.length - 1)]
-  const base = randInt(1, 4 + level) * (100 / gcdHundred(p))
+  const base = randInt(2, 8 + level) * (100 / gcdHundred(p))
   const answer = (base * p) / 100
   return { question: `${p}% of ${base}`, answer }
 }
@@ -66,10 +66,10 @@ function gcd(a: number, b: number): number {
 }
 
 const chain: Generator = (level) => {
-  const max = 10 + level * 4
+  const max = 15 + level * 6
   const a = randInt(1, max)
   const b = randInt(1, max)
-  const c = randInt(1, Math.min(10, 4 + level))
+  const c = randInt(2, Math.min(15, 6 + level))
   const useMultiply = Math.random() < 0.5
   if (useMultiply) {
     return { question: `${a} + ${b} × ${c}`, answer: a + b * c }
@@ -82,19 +82,18 @@ const generators: Generator[] = [addition, subtraction, multiplication, division
 let nextId = 1
 
 export function generateProblem(level: number): Problem {
-  const pool: Generator[] = [addition, subtraction]
-  if (level >= 2) pool.push(multiplication, division)
+  const pool: Generator[] = [addition, subtraction, multiplication, division]
   if (level >= 4) pool.push(square)
   if (level >= 5) pool.push(percentage)
-  if (level >= 7) pool.push(chain)
+  if (level >= 6) pool.push(chain)
 
   const generator = pool[randInt(0, pool.length - 1)] ?? generators[0]
   const { question, answer } = generator(level)
   return { id: nextId++, question, answer }
 }
 
-const START_LEVEL = 3
-const LEVEL_UP_EVERY = 4
+const START_LEVEL = 5
+const LEVEL_UP_EVERY = 3
 
 export function generateBatch(count: number, startIndex: number): Problem[] {
   const batch: Problem[] = []
