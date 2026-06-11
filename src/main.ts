@@ -1,5 +1,6 @@
 import './style.css'
 import { generateBatch, type Problem } from './problems'
+import { playAmbient, playHappyBirthdayMusic } from './audio'
 
 const BATCH_SIZE = 8
 const LOAD_THRESHOLD = 3 // start loading more when this many cards remain below viewport
@@ -64,7 +65,7 @@ function showSetup() {
     <div class="setup">
       <div class="setup-card">
         <div class="brand">MatCHINg</div>
-        <p class="setup-subtitle">Mental math, infinite scroll.</p>
+        <p class="setup-subtitle">Mental math, power your brain</p>
         <p class="setup-label">Choose a mode</p>
         <div class="mode-options">
           ${TIME_OPTIONS.map(
@@ -74,6 +75,7 @@ function showSetup() {
         <p class="setup-hint">Timed modes show how many calculations you can solve before time runs out.</p>
       </div>
     </div>
+    <button class="hb-corner-btn" id="hb-btn">🎂 Happy Birthday</button>
   `
 
   app.querySelectorAll<HTMLButtonElement>('.mode-btn').forEach((btn) => {
@@ -81,6 +83,38 @@ function showSetup() {
       startGame(Number(btn.dataset.seconds))
     })
   })
+
+  app.querySelector<HTMLButtonElement>('#hb-btn')?.addEventListener('click', () => {
+    showHappyBirthday()
+  })
+
+  playAmbient()
+}
+
+function showHappyBirthday() {
+  if (timerInterval !== undefined) {
+    clearInterval(timerInterval)
+    timerInterval = undefined
+  }
+  observer?.disconnect()
+  observer = null
+
+  app.innerHTML = `
+    <div class="setup">
+      <div class="setup-card birthday-card">
+        <div class="birthday-emoji">🎉🎂🎈</div>
+        <h1 class="birthday-title">Happy birthday Chiin!</h1>
+        <p class="setup-subtitle">Wishing you an amazing day!</p>
+        <button class="mode-btn" id="hb-back-btn">Back to menu</button>
+      </div>
+    </div>
+  `
+
+  app.querySelector<HTMLButtonElement>('#hb-back-btn')?.addEventListener('click', () => {
+    showSetup()
+  })
+
+  playHappyBirthdayMusic()
 }
 
 function startGame(seconds: number) {
@@ -92,6 +126,8 @@ function startGame(seconds: number) {
   activeInput = null
   timedMode = seconds > 0
   timeLeft = seconds
+
+  playAmbient()
 
   app.innerHTML = `
     <header class="topbar">

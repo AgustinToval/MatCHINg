@@ -280,6 +280,50 @@ body {
   background: var(--accent-bg, color-mix(in srgb, var(--accent) 12%, var(--surface-2)));
 }
 
+.hb-corner-btn {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.hb-corner-btn:hover {
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+.birthday-card .birthday-emoji {
+  font-size: 48px;
+  line-height: 1.3;
+}
+
+.birthday-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: inline-block;
+  line-height: 1.3;
+  padding-bottom: 0.08em;
+}
+
+.birthday-card .mode-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
 .finished-overlay {
   position: fixed;
   inset: 0;
