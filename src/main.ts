@@ -6,11 +6,23 @@ const LOAD_THRESHOLD = 3 // start loading more when this many cards remain below
 const MAX_MISTAKES = 3
 
 const TIME_OPTIONS: { label: string; seconds: number }[] = [
-  { label: '30s', seconds: 30 },
-  { label: '60s', seconds: 60 },
-  { label: '120s', seconds: 120 },
+  { label: '30 sec', seconds: 30 },
+  { label: '1 min', seconds: 60 },
+  { label: '2 min', seconds: 120 },
   { label: 'No limit', seconds: 0 },
 ]
+
+const BEST_STREAK_KEY = 'matching-best-streak'
+
+function loadBestStreak(): number {
+  const raw = localStorage.getItem(BEST_STREAK_KEY)
+  const value = raw ? Number(raw) : 0
+  return Number.isFinite(value) ? value : 0
+}
+
+function saveBestStreak(value: number) {
+  localStorage.setItem(BEST_STREAK_KEY, String(value))
+}
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
@@ -23,6 +35,7 @@ let activeInput: HTMLInputElement | null = null
 let timedMode = false
 let timeLeft = 0
 let timerInterval: number | undefined
+let allTimeBest = loadBestStreak()
 
 let feed: HTMLDivElement
 let scoreEl: HTMLSpanElement
@@ -74,7 +87,7 @@ function startGame(seconds: number) {
   loadedCount = 0
   score = 0
   streak = 0
-  bestStreak = 0
+  bestStreak = allTimeBest
   mistakes = 0
   activeInput = null
   timedMode = seconds > 0
@@ -82,7 +95,10 @@ function startGame(seconds: number) {
 
   app.innerHTML = `
     <header class="topbar">
-      <div class="brand">MatCHINg</div>
+      <div class="topbar-left">
+        <button class="back-btn" id="back-btn" aria-label="Back to menu">←</button>
+        <div class="brand">MatCHINg</div>
+      </div>
       <div class="stats">
         ${
           timedMode
@@ -134,6 +150,10 @@ function startGame(seconds: number) {
   observer.observe(sentinel)
   updateStats()
 
+  app.querySelector<HTMLButtonElement>('#back-btn')?.addEventListener('click', () => {
+    showSetup()
+  })
+
   const firstInput = feed.querySelector<HTMLInputElement>('.answer-input')
   setActiveInput(firstInput)
 
@@ -184,6 +204,32 @@ function updateStats() {
   bestEl.textContent = String(bestStreak)
   const remaining = MAX_MISTAKES - mistakes
   livesEl.textContent = '●'.repeat(Math.max(remaining, 0)) + '○'.repeat(mistakes)
+}
+
+const CONFETTI_COLORS = ['#c084fc', '#a855f7', '#34d399', '#facc15', '#60a5fa', '#f87171']
+
+function celebrateRecord() {
+  const burst = document.createElement('div')
+  burst.className = 'celebration'
+
+  for (let i = 0; i < 28; i++) {
+    const piece = document.createElement('span')
+    piece.className = 'confetti'
+    piece.style.setProperty('--x', `${(Math.random() - 0.5) * 100}vw`)
+    piece.style.setProperty('--rotate', `${Math.random() * 720 - 360}deg`)
+    piece.style.setProperty('--delay', `${Math.random() * 0.3}s`)
+    piece.style.left = `${Math.random() * 100}%`
+    piece.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length]
+    burst.appendChild(piece)
+  }
+
+  const badge = document.createElement('div')
+  badge.className = 'celebration-badge'
+  badge.textContent = '🎉 New record!'
+  burst.appendChild(badge)
+
+  app.appendChild(burst)
+  window.setTimeout(() => burst.remove(), 1800)
 }
 
 function setActiveInput(input: HTMLInputElement | null) {
@@ -241,6 +287,11 @@ function createCard(problem: Problem): HTMLElement {
       score += 1
       streak += 1
       bestStreak = Math.max(bestStreak, streak)
+      if (streak > allTimeBest) {
+        allTimeBest = streak
+        saveBestStreak(allTimeBest)
+        celebrateRecord()
+      }
     } else {
       card.classList.add('incorrect')
       feedbackEl.textContent = `✗ ${problem.answer}`
