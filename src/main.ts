@@ -3,11 +3,13 @@ import { generateBatch, type Problem } from './problems'
 
 const BATCH_SIZE = 8
 const LOAD_THRESHOLD = 3 // start loading more when this many cards remain below viewport
+const MAX_MISTAKES = 3
 
 let loadedCount = 0
 let score = 0
 let streak = 0
 let bestStreak = 0
+let mistakes = 0
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
@@ -27,6 +29,10 @@ app.innerHTML = `
         <span class="stat-value" id="best-value">0</span>
         <span class="stat-label">best</span>
       </div>
+      <div class="stat">
+        <span class="stat-value" id="lives-value">●●●</span>
+        <span class="stat-label">lives</span>
+      </div>
     </div>
   </header>
   <main class="feed" id="feed"></main>
@@ -36,11 +42,14 @@ const feed = document.querySelector<HTMLDivElement>('#feed')!
 const scoreEl = document.querySelector<HTMLSpanElement>('#score-value')!
 const streakEl = document.querySelector<HTMLSpanElement>('#streak-value')!
 const bestEl = document.querySelector<HTMLSpanElement>('#best-value')!
+const livesEl = document.querySelector<HTMLSpanElement>('#lives-value')!
 
 function updateStats() {
   scoreEl.textContent = String(score)
   streakEl.textContent = String(streak)
   bestEl.textContent = String(bestStreak)
+  const remaining = MAX_MISTAKES - mistakes
+  livesEl.textContent = '●'.repeat(Math.max(remaining, 0)) + '○'.repeat(mistakes)
 }
 
 function createCard(problem: Problem): HTMLElement {
@@ -90,8 +99,14 @@ function createCard(problem: Problem): HTMLElement {
       card.classList.add('incorrect')
       feedbackEl.textContent = `✗ ${problem.answer}`
       streak = 0
+      mistakes += 1
     }
     updateStats()
+
+    if (mistakes >= MAX_MISTAKES) {
+      window.setTimeout(resetFeed, 600)
+      return
+    }
 
     // Move focus to the next card's input, if present.
     const next = card.nextElementSibling as HTMLElement | null
@@ -126,6 +141,21 @@ function loadMore() {
   }
 
   feed.insertBefore(fragment, sentinel)
+}
+
+function resetFeed() {
+  loadedCount = 0
+  score = 0
+  streak = 0
+  mistakes = 0
+
+  feed.innerHTML = ''
+  feed.appendChild(sentinel)
+  loadMore()
+  updateStats()
+
+  feed.scrollTo({ top: 0 })
+  feed.querySelector<HTMLInputElement>('.answer-input')?.focus()
 }
 
 const observer = new IntersectionObserver(

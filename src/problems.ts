@@ -11,14 +11,14 @@ function randInt(min: number, max: number): number {
 type Generator = (level: number) => Omit<Problem, 'id'>
 
 const addition: Generator = (level) => {
-  const max = 10 + level * 8
+  const max = 15 + level * 10
   const a = randInt(1, max)
   const b = randInt(1, max)
   return { question: `${a} + ${b}`, answer: a + b }
 }
 
 const subtraction: Generator = (level) => {
-  const max = 10 + level * 8
+  const max = 15 + level * 10
   const a = randInt(1, max)
   const b = randInt(1, max)
   const hi = Math.max(a, b)
@@ -27,14 +27,14 @@ const subtraction: Generator = (level) => {
 }
 
 const multiplication: Generator = (level) => {
-  const max = Math.min(12, 4 + Math.floor(level / 2))
+  const max = Math.min(20, 5 + Math.floor(level / 2))
   const a = randInt(2, max)
   const b = randInt(2, max)
   return { question: `${a} × ${b}`, answer: a * b }
 }
 
 const division: Generator = (level) => {
-  const max = Math.min(12, 4 + Math.floor(level / 2))
+  const max = Math.min(20, 5 + Math.floor(level / 2))
   const b = randInt(2, max)
   const answer = randInt(2, max)
   const a = b * answer
@@ -42,7 +42,7 @@ const division: Generator = (level) => {
 }
 
 const square: Generator = (level) => {
-  const max = Math.min(15, 4 + Math.floor(level / 2))
+  const max = Math.min(20, 5 + Math.floor(level / 2))
   const a = randInt(2, max)
   return { question: `${a}²`, answer: a * a }
 }
@@ -93,10 +93,13 @@ export function generateProblem(level: number): Problem {
   return { id: nextId++, question, answer }
 }
 
+const START_LEVEL = 3
+const LEVEL_UP_EVERY = 4
+
 export function generateBatch(count: number, startIndex: number): Problem[] {
   const batch: Problem[] = []
   for (let i = 0; i < count; i++) {
-    const level = Math.floor((startIndex + i) / 5) + 1
+    const level = Math.floor((startIndex + i) / LEVEL_UP_EVERY) + START_LEVEL
     batch.push(generateProblem(level))
   }
   return batch
